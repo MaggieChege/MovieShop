@@ -15,20 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from movies.views import (
-    MovieListView,
-    MovieCreateView,
-    MovieDetailView,
-    ViewReleaseListView,
-    ChildrenMoviesView,
-    NewreleaseCreateView,
-    CreateChildrensMoviesView,
-)
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
 from authentication.views import MyObtainTokenPairView, RegisterView
+from movies.views import (ChildrenMoviesView, CreateChildrensMoviesView,
+                          MovieCreateView, MovieDetailView, MovieListView,
+                          NewreleaseCreateView, ViewReleaseListView)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("login/", MyObtainTokenPairView.as_view()),
+    path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", RegisterView.as_view(), name="auth_register"),
     path("all_movies/", MovieListView.as_view()),
     path("add_movie/", MovieCreateView.as_view()),
@@ -37,4 +34,5 @@ urlpatterns = [
     path("all_children_movies/", ChildrenMoviesView.as_view()),
     path("add_children_movies/", CreateChildrensMoviesView.as_view()),
     path("movie/<str:title>/", MovieDetailView.as_view()),
+    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ]

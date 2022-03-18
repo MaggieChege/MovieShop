@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
+# from sqlalchemy import ForeignKey, null
+# from django_enumfield import enum
+import datetime
+from email.policy import default
+from enum import Enum, auto
 from statistics import mode
 
 # from unittest import defaultTestLoader
 from django.db import models
-from enum import Enum, auto
-
-# from sqlalchemy import ForeignKey, null
-# from django_enumfield import enum
-import datetime
 
 RATINGS = (
     ("5", "5"),
@@ -24,12 +24,12 @@ TYPE = (
     ("New_Release", "New_Release"),
 )
 GenreType = (
-("Drama","Drama"),
-("Romance","Romance"),
-("Action","Action"),
-("Comedy","Comedy"),
-("Horror","Horror"),)
-
+    ("Drama", "Drama"),
+    ("Romance", "Romance"),
+    ("Action", "Action"),
+    ("Comedy", "Comedy"),
+    ("Horror", "Horror"),
+)
 
 
 class Genre(models.Model):
@@ -42,12 +42,14 @@ class Genre(models.Model):
         managed = True
         db_table = "genre"
 
+
 class Movies(models.Model):
     title = models.CharField(max_length=100, unique=True, primary_key=True)
     type = models.CharField(choices=TYPE, max_length=50)
     genre = models.CharField(choices=GenreType, max_length=100)
     description = models.CharField(max_length=100, null=True, blank=True)
-    movie_poster = models.ImageField(null=True, blank=True)
+    movie_poster = models.URLField(null=True, blank=True)
+    quantity = models.IntegerField(default=1, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     popularity = models.CharField(
@@ -67,7 +69,9 @@ class Movies(models.Model):
 
 
 class ChildrensMovie(models.Model):
-    movie = models.OneToOneField(Movies, on_delete=models.CASCADE, default=None, unique=True)
+    movie = models.OneToOneField(
+        Movies, on_delete=models.CASCADE, default=None, unique=True
+    )
     max_age = models.IntegerField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
@@ -94,8 +98,6 @@ class NewRelease(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
-    
-
     def __str__(self):
         return f"<New Release {self.movie} {self.year_released}>"
 
@@ -103,4 +105,3 @@ class NewRelease(models.Model):
         managed = True
         db_table = "movies_new_release"
         unique_together = [["movie", "year_released"]]
-

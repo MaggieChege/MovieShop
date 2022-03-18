@@ -1,36 +1,28 @@
-from django.shortcuts import render
+from urllib import response
 
-from .models import Movies, ChildrensMovie, NewRelease
-from django.shortcuts import render
-from rest_framework.generics import (
-    UpdateAPIView,
-    ListAPIView,
-    RetrieveAPIView,
-    CreateAPIView,
-)
+from authentication.serializers import UserSerializer
 from django.db.models import Prefetch
-
-from .serializers import (
-    MovieSerializer,
-    NewReleaseSerializer,
-    CreateNewReleaseSerializer,
-    CreateNewChildrensMovie,
-    ChildrenMoviesSerializer,
-)
-from rest_framework import mixins
-
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.exceptions import APIException  # Import APIException
-from django_filters.rest_framework import DjangoFilterBackend
 from django.db.utils import IntegrityError
 from django.http import Http404
-from rest_framework.views import APIView
+from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, status
+from rest_framework.exceptions import APIException  # Import APIException
+from rest_framework.generics import (CreateAPIView, ListAPIView,
+                                     RetrieveAPIView, UpdateAPIView)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser
+from rest_framework.views import APIView
+
+from .models import ChildrensMovie, Movies, NewRelease
+from .serializers import (ChildrenMoviesSerializer, CreateNewChildrensMovie,
+                          CreateNewReleaseSerializer, MovieSerializer,
+                          NewReleaseSerializer)
 
 
 class MovieListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Movies.objects.all()
     serializer_class = MovieSerializer
     pagination_class = PageNumberPagination
@@ -38,20 +30,20 @@ class MovieListView(ListAPIView):
         DjangoFilterBackend,
     ]
 
-    def get_user_loggedin(request):
-        user = request.user
-        return JsonResponse({"user": user})
-
-    # filterset_fields=['title']
+    def list(self, request):
+        queryset = self.get_queryset()
+        movies_serializer = MovieSerializer(queryset, many=True)
+        if request.user.is_authenticated:
+            user = request.user
+            serializer = UserSerializer(user)
+            response_list = {"movies": movies_serializer.data, "user": serializer.data}
+            return Response(response_list)
+        return Response(movies_serializer.data)
 
 
 class MovieCreateView(CreateAPIView):
     serializer_class = MovieSerializer
     permisssion_classes = (IsAdminUser,)
-
-
-# class GenreCreateView(CreateAPIView):
-#     serializer_class = GenreSerializer
 
 
 class MovieDetailView(
@@ -80,17 +72,10 @@ class ViewReleaseListView(ListAPIView):
     filter_backends = [
         DjangoFilterBackend,
     ]
-    # filterset_fields=['title']
 
 
 class NewreleaseCreateView(CreateAPIView):
-    # queryset = Movies.ob/jects.filter(type="New_Release")
     serializer_class = CreateNewReleaseSerializer
-
-
-# class CreateChildrensMovie(CreateAPIView):
-#     queryset = Movies.objects.filter(type="Children")
-#     serializer_class = CreateNewChildrensMovie
 
 
 class ChildrenMoviesView(ListAPIView):
