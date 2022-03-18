@@ -15,7 +15,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from movies.views import (
+    MovieListView,
+    MovieCreateView,
+    MovieDetailView,
+    ViewReleaseListView,
+    ChildrenMoviesView,
+    NewreleaseCreateView,
+    CreateChildrensMoviesView,
+)
+from authentication.views import MyObtainTokenPairView, RegisterView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("login/", MyObtainTokenPairView.as_view()),
+    path("register/", RegisterView.as_view(), name="auth_register"),
+    path("all_movies/", MovieListView.as_view()),
+    path("add_movie/", MovieCreateView.as_view()),
+    path("add_release/", NewreleaseCreateView.as_view()),
+    path("all_releases/", ViewReleaseListView.as_view()),
+    path("all_children_movies/", ChildrenMoviesView.as_view()),
+    path("add_children_movies/", CreateChildrensMoviesView.as_view()),
+    path("movie/<str:title>/", MovieDetailView.as_view()),
 ]
