@@ -10,63 +10,70 @@ from enum import Enum, auto
 # from django_enumfield import enum
 import datetime
 
+RATINGS = (
+    ("5", "5"),
+    ("4", "4"),
+    ("3", "3"),
+    ("2", "2"),
+    ("1", "1"),
+)
 
-class MovieTypeEnum(Enum):
-    Regular = auto()
-    Children = auto()
-    New_Release = auto()
+TYPE = (
+    ("Regular", "Regular"),
+    ("Children", "Children"),
+    ("New_Release", "New_Release"),
+)
+GenreType = (
+("Drama","Drama"),
+("Romance","Romance"),
+("Action","Action"),
+("Comedy","Comedy"),
+("Horror","Horror"),)
 
 
-class GenreTypeEnum(Enum):
-    Action = auto()
-    Drama = auto()
-    Romance = auto()
-    Comedy = auto()
-    Horror = auto()
-    Animation = auto()
 
+class Genre(models.Model):
+    name = models.CharField(max_length=255, primary_key=True)
 
-class Movie(models.Model):
-    title = models.CharField(max_length=100, unique=True, primary_key=True)
-    type = models.CharField(
-        max_length=max(map(len, (v.name for v in MovieTypeEnum))),
-        choices=[(enum.name, enum.name) for enum in MovieTypeEnum],
-        default=MovieTypeEnum.Regular.value,
-        editable=False,
-    )
-    genre = models.CharField(
-        max_length=max(map(len, (v.name for v in GenreTypeEnum))),
-        choices=[(enum.name, enum.name) for enum in GenreTypeEnum],
-        default=GenreTypeEnum.Action.value,
-        editable=False,
-    )
-    description = models.CharField(max_length=100, null=True, blank=True)
-    # price = models.IntegerField()
-    # quantity = models.IntergerField()
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
-    popularity = models.IntegerField(
-        null=True, blank=True, help_text="Captured as Percentage"
-    )
-
-    def __str__(self):
-        return f"<Movie {self.title} {self.type}>"
+    def __str__(self) -> str:
+        return self.name
 
     class Meta:
         managed = True
-        db_table = "movie"
-        unique_together = [["title", "genre"]]
+        db_table = "genre"
+
+class Movies(models.Model):
+    title = models.CharField(max_length=100, unique=True, primary_key=True)
+    type = models.CharField(choices=TYPE, max_length=50)
+    genre = models.CharField(choices=GenreType, max_length=100)
+    description = models.CharField(max_length=100, null=True, blank=True)
+    movie_poster = models.ImageField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    popularity = models.CharField(
+        choices=RATINGS,
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Captured as Rating between 0 -5 ",
+    )
+
+    def __str__(self):
+        return f"{self.title} {self.type}>"
+
+    class Meta:
+        managed = True
+        db_table = "movies"
 
 
 class ChildrensMovie(models.Model):
-    # id = models.IntegerField()
-    movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING, default=None)
+    movie = models.OneToOneField(Movies, on_delete=models.CASCADE, default=None, unique=True)
     max_age = models.IntegerField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f"{self.movie} {self.max_age}>"
+        return f"{self.movie} {self.max_age}"
 
     class Meta:
         managed = True
@@ -74,7 +81,7 @@ class ChildrensMovie(models.Model):
 
 
 def year_choices():
-    return [(r, r) for r in range(1990, datetime.date.today().year + 1)]
+    return [(r, r) for r in range(2010, datetime.date.today().year + 1)]
 
 
 def current_year():
@@ -82,15 +89,18 @@ def current_year():
 
 
 class NewRelease(models.Model):
-    # id = models.IntegerField()
-    movie = models.ForeignKey(Movie, on_delete=models.DO_NOTHING, default=None)
-    year_release = models.IntegerField(choices=year_choices(), default=current_year())
+    movie = models.ForeignKey(Movies, on_delete=models.CASCADE, default=None)
+    year_released = models.IntegerField(choices=year_choices(), default=current_year())
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
+    
+
     def __str__(self):
-        return f"<New Release {self.movie} {self.year_release}>"
+        return f"<New Release {self.movie} {self.year_released}>"
 
     class Meta:
         managed = True
-        db_table = "new_release"
+        db_table = "movies_new_release"
+        unique_together = [["movie", "year_released"]]
+
