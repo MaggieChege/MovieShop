@@ -8,7 +8,8 @@ Django API for an online movie shop
 
 Activate your virtual environment: `source venv/bin/activate`
 
-3.Clone this repo
+3.Clone this repo 
+`https://github.com/MaggieChege/MovieShop.git`
 
 4.Install all the dependancies in the requirements.txt file `pip install -r requirements.txt`
 
@@ -17,8 +18,9 @@ Activate your virtual environment: `source venv/bin/activate`
 6.Create a .env file in the project folder and and the following exports:
 
     export DATABASE="<name of your database>"
-
+    export PASSWORD=<password>
     export USER="<your postgres username>"
+
 7.Export the settings by running the command: `source .env`
 
 8.Migrate the database:
