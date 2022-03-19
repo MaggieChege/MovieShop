@@ -38,3 +38,21 @@ Activate your virtual environment: `source venv/bin/activate`
 10.Create superUser
 `python manage.py createsuperuser`
 
+11.Available endpoints
+
+```   admin/
+    login/
+    login/refresh/ [name='token_refresh']
+    register/ [name='auth_register']
+    all_movies/
+    add_movie/
+    movie/<str:title>/
+    all_children_movies/
+    add_children_movies/
+    add_release/
+    all_releases/
+    add_movie_pricing/
+    movie_prices/
+    rent_movies/
+    all_rented_movies```
+
