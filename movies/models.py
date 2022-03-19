@@ -11,6 +11,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.db.models import F
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
+import datetime
+from rest_framework.exceptions import APIException  # Import APIException
+
 
 RATINGS = (
     ("5", "5"),
@@ -124,7 +129,7 @@ class RentOutMovies(models.Model):
     title = models.ForeignKey(Movies, on_delete=models.SET_NULL, blank=True, null=True)
     return_date = models.DateField(blank=False, null=False)
     day = models.DateField(default=datetime.date.today)
-    number_of_days_rented = models.DateField(default=datetime.date.today)
+    number_of_days_rented = models.IntegerField(blank=True, null=True)
     price = models.FloatField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     returned = models.BooleanField(default=False)
@@ -134,6 +139,42 @@ class RentOutMovies(models.Model):
     class Meta:
         managed = True
         db_table = "rent_out_movie"
+
+    @property
+    def get_days_rented(self):
+        return (self.return_date - self.day).days
+
+    @property
+    def get_price(self):
+        if self.title.type == "New_Release":
+            try:
+                rate = Pricing.objects.get(movie_type=self.title.type).price
+                pricing = rate * self.get_days_rented
+            except ObjectDoesNotExist as error:
+                raise APIException(detail=error)
+
+        if self.title.type == "Children":
+            try:
+                rate = Pricing.objects.get(movie_type=self.title.type).price
+                maximum_age = ChildrensMovie.objects.get(
+                    movie__title=self.title.title
+                ).max_age
+                pricing = rate * self.get_days_rented + (maximum_age / 2)
+            except ObjectDoesNotExist as error:
+                raise APIException(detail=error)
+        if self.title.type == "Regular":
+            try:
+                rate = Pricing.objects.get(movie_type=self.title.type).price
+                pricing = rate * self.get_days_rented
+            except ObjectDoesNotExist as error:
+                raise APIException(detail=error)
+        return pricing
+
+    def save(self, *args, **kwargs):
+        self.number_of_days_rented = self.get_days_rented
+        self.price = self.get_price
+
+        super(RentOutMovies, self).save(*args, **kwargs)
 
 
 def after_saving_rent_out_movie(sender, instance, **kwargs):

@@ -127,8 +127,7 @@ class RentOutMoviesListView(ListCreateAPIView):
     queryset = RentOutMovies.objects.all()
     serializer_class = RentMovieSerialiser
 
-    def post(self, request, format=None):
-        # breakpoint(/)
+    def create(self, request, *args, **kwargs):
         serializer = RentMovieSerialiser(data=request.data)
         if serializer.is_valid():
             serializer.save()
