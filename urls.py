@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+from rest_framework_swagger.views import get_swagger_view
 
 from authentication.views import MyObtainTokenPairView, RegisterView
 from movies.views import (
@@ -32,11 +33,16 @@ from movies.views import (
     RentOutView,
 )
 
-# from rest_framework.authtoken import views
+schema_view = get_swagger_view(title="Pastebin API")
+
+from rest_framework.documentation import include_docs_urls
+
+
 urlpatterns = [
+    path("docs/", include_docs_urls(title="API_TITLE", description="API_DESCRIPTION")),
     path("admin/", admin.site.urls),
+    # Authentication endpoints
     path("login/", MyObtainTokenPairView.as_view()),
-    # path('api-token-auth/', views.obtain_auth_token),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", RegisterView.as_view(), name="auth_register"),
     # Movies endpoints
