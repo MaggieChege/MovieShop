@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_extensions",
     "rest_framework_simplejwt",
+    "rest_framework_swagger",
 ]
 
 MIDDLEWARE = [
@@ -83,9 +84,9 @@ WSGI_APPLICATION = "wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME":  os.environ["DATABASE_NAME"],  #DATABASE_NAME
-        "USER": os.environ["USER"], # USER
-        "PASSWORD": os.environ["PASSWORD"],#PASSWORD
+        "NAME": os.environ["DATABASE_NAME"],  # DATABASE_NAME
+        "USER": os.environ["USER"],  # USER
+        "PASSWORD": os.environ["PASSWORD"],  # PASSWORD
         "HOST": "localhost",
         "PORT": "5433",
     }
@@ -111,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
