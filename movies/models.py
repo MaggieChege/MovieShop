@@ -5,10 +5,12 @@
 import datetime
 from email.policy import default
 from enum import Enum, auto
+from pyexpat import model
 from statistics import mode
-
-# from unittest import defaultTestLoader
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.db.models import F
 
 RATINGS = (
     ("5", "5"),
@@ -105,3 +107,42 @@ class NewRelease(models.Model):
         managed = True
         db_table = "movies_new_release"
         unique_together = [["movie", "year_released"]]
+
+
+class Pricing(models.Model):
+    id = models.AutoField(primary_key=True)
+    movie_type = models.CharField(choices=TYPE, max_length=50, unique=True)
+    price = models.FloatField(null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = "pricing"
+
+
+class RentOutMovies(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.ForeignKey(Movies, on_delete=models.SET_NULL, blank=True, null=True)
+    return_date = models.DateField(blank=False, null=False)
+    day = models.DateField(default=datetime.date.today)
+    number_of_days_rented = models.DateField(default=datetime.date.today)
+    price = models.FloatField(blank=True, null=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    returned = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = "rent_out_movie"
+
+
+def after_saving_rent_out_movie(sender, instance, **kwargs):
+    """
+
+    Reduce the number of Movies as we have rented them out
+    """
+    movie_instance = Movies.objects.filter(title=instance.title.title)
+    movie_instance.update(quantity=F("quantity") - 1)
+
+
+post_save.connect(after_saving_rent_out_movie, sender=RentOutMovies)
