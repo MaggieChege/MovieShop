@@ -3,6 +3,8 @@ import movies
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.exceptions import APIException  # Import APIException
+from rest_framework.response import Response
+from rest_framework import mixins, status
 
 from .models import (
     Movies,
@@ -26,55 +28,25 @@ class RentOutMoviesSerializer(ModelSerializer):
 
 
 class RentMovieSerialiser(serializers.ModelSerializer):
-    title = serializers.PrimaryKeyRelatedField(queryset=Movies.objects.filter(quantity__gt=0), help_text="Available movies to rent out")
+    title = serializers.PrimaryKeyRelatedField(
+        queryset=Movies.objects.filter(quantity__gt=0),
+        help_text="Available movies to rent out",
+    )
     return_date = serializers.DateField(
         format=None,
         input_formats=[
             "%Y-%m-%d",
         ],
     )
-    price = serializers.SerializerMethodField("get_price")
+    price = serializers.FloatField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    number_of_days_rented = serializers.SerializerMethodField("get_days_rented")
+    number_of_days_rented = serializers.CharField(read_only=True)
 
-    def get_days_rented(self, obj):
-        return (obj.return_date - obj.day).days
-
-    def get_price(self, obj):
-        if obj.title.type == "New_Release":
-            try:
-                rate = Pricing.objects.get(movie_type=obj.title.type).price
-                days = (obj.return_date - obj.day).days
-                pricing = rate * days
-            except ObjectDoesNotExist as error:
-                raise APIException(detail=error)
-
-        if obj.title.type == "Children":
-            try:
-                rate = Pricing.objects.get(movie_type=obj.title.type).price
-                days = (obj.return_date - obj.day).days
-                maximum_age = ChildrensMovie.objects.get(
-                    movie__title=obj.title.title
-                ).max_age
-                pricing = rate * days + (maximum_age / 2)
-            except ObjectDoesNotExist as error:
-                raise APIException(detail=error)
-        if obj.title.type == "Regular":
-            try:
-                rate = Pricing.objects.get(movie_type=obj.title.type).price
-                days = (obj.return_date - obj.day).days
-                # year_released = NewRelease.objects.get(
-                #     movie__title=obj.title.title
-                # ).year_released
-                # breakpoint()
-                pricing = rate * days
-            except ObjectDoesNotExist as error:
-                raise APIException(detail=error)
-
-        if pricing < 0:
-
-            raise serializers.ValidationError("Return day must be after today")
-        return pricing
+    def validate(self, data):
+        """validates max childrens age between 3 and 16"""
+        if datetime.date.today() > data["return_date"]:
+            raise serializers.ValidationError("Choose a day later than today")
+        return data
 
     class Meta:
         model = RentOutMovies
@@ -131,10 +103,8 @@ class CreateNewChildrensMovie(ModelSerializer):
 
     def validate(self, data):
         """validates max childrens age between 3 and 16"""
-        if data["max_age"] < 3 and data["max_age"] < 16:
-            raise serializers.ValidationError(
-                "Minimum age is 3 Years. Maximum 16 Years"
-            )
+        if data["max_age"] > 16:
+            raise serializers.ValidationError("Maximum  age is 16 Years")
 
         return data
 
