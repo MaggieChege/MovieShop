@@ -8,17 +8,30 @@ from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status
 from rest_framework.exceptions import APIException  # Import APIException
-from rest_framework.generics import (CreateAPIView, ListAPIView,
-                                     RetrieveAPIView, UpdateAPIView)
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveAPIView,
+    UpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import ChildrensMovie, Movies, NewRelease
-from .serializers import (ChildrenMoviesSerializer, CreateNewChildrensMovie,
-                          CreateNewReleaseSerializer, MovieSerializer,
-                          NewReleaseSerializer)
+from .models import ChildrensMovie, Movies, NewRelease, Pricing, RentOutMovies
+from .serializers import (
+    ChildrenMoviesSerializer,
+    CreateNewChildrensMovie,
+    CreateNewReleaseSerializer,
+    MovieSerializer,
+    NewReleaseSerializer,
+    PricingSerializer,
+    RentOutMoviesSerializer,
+    RentMovieSerialiser,
+)
 
 
 class MovieListView(ListAPIView):
@@ -85,14 +98,44 @@ class ChildrenMoviesView(ListAPIView):
 
 
 class CreateChildrensMoviesView(CreateAPIView):
-    # queryse/t = Movies.objects.filter(type="Children")
     serializer_class = CreateNewChildrensMovie
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
-        # breakpoint()
         try:
             serializer.is_valid(raise_exception=True)
             serializer.save()
         except IntegrityError as error:
             raise APIException(detail=error)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PricingListView(ListAPIView):
+    queryset = Pricing.objects.filter()
+    serializer_class = PricingSerializer
+    pagination_class = PageNumberPagination
+    filter_backends = [
+        DjangoFilterBackend,
+    ]
+
+
+class AddPricingDetailView(CreateAPIView, mixins.UpdateModelMixin):
+    serializer_class = PricingSerializer
+
+
+class RentOutMoviesListView(ListCreateAPIView):
+    queryset = RentOutMovies.objects.all()
+    serializer_class = RentMovieSerialiser
+
+    def post(self, request, format=None):
+        # breakpoint(/)
+        serializer = RentMovieSerialiser(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RentOutView(ListAPIView):
+    queryset = RentOutMovies.objects.filter()
+    serializer_class = RentOutMoviesSerializer

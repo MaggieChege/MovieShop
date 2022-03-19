@@ -83,9 +83,9 @@ WSGI_APPLICATION = "wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "movies",
-        "USER": os.environ["USER"],
-        "PASSWORD": os.environ["PASSWORD"],
+        "NAME":  os.environ["DATABASE_NAME"],  #DATABASE_NAME
+        "USER": os.environ["USER"], # USER
+        "PASSWORD": os.environ["PASSWORD"],#PASSWORD
         "HOST": "localhost",
         "PORT": "5433",
     }
@@ -114,6 +114,8 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
+        # "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
@@ -130,6 +132,7 @@ SIMPLE_JWT = {
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
 }
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

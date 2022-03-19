@@ -18,21 +18,41 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from authentication.views import MyObtainTokenPairView, RegisterView
-from movies.views import (ChildrenMoviesView, CreateChildrensMoviesView,
-                          MovieCreateView, MovieDetailView, MovieListView,
-                          NewreleaseCreateView, ViewReleaseListView)
+from movies.views import (
+    ChildrenMoviesView,
+    CreateChildrensMoviesView,
+    MovieCreateView,
+    MovieDetailView,
+    MovieListView,
+    PricingListView,
+    NewreleaseCreateView,
+    ViewReleaseListView,
+    AddPricingDetailView,
+    RentOutMoviesListView,
+    RentOutView,
+)
 
+# from rest_framework.authtoken import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("login/", MyObtainTokenPairView.as_view()),
+    # path('api-token-auth/', views.obtain_auth_token),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", RegisterView.as_view(), name="auth_register"),
+    # Movies endpoints
     path("all_movies/", MovieListView.as_view()),
     path("add_movie/", MovieCreateView.as_view()),
-    path("add_release/", NewreleaseCreateView.as_view()),
-    path("all_releases/", ViewReleaseListView.as_view()),
+    path("movie/<str:title>/", MovieDetailView.as_view()),
+    # Childrens Movies endpoints
     path("all_children_movies/", ChildrenMoviesView.as_view()),
     path("add_children_movies/", CreateChildrensMoviesView.as_view()),
-    path("movie/<str:title>/", MovieDetailView.as_view()),
-    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # New Releases
+    path("add_release/", NewreleaseCreateView.as_view()),
+    path("all_releases/", ViewReleaseListView.as_view()),
+    # Movie Pricing
+    path("add_movie_pricing/", AddPricingDetailView.as_view()),
+    path("movie_prices/", PricingListView.as_view()),
+    # Rent out movies
+    path("rent_movies/", RentOutMoviesListView.as_view()),
+    path("all_rented_movies", RentOutView.as_view()),
 ]
