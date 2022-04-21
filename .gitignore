@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#personal changes/info
+auth_token.yml
+
+#Personal Notebook
+*.ipynb
+.ipynb_checkpoints
